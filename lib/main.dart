@@ -1,0 +1,56 @@
+import 'dart:developer';
+
+import 'package:book_app/core/route/route.dart';
+import 'package:book_app/core/util/injection.dart';
+import 'package:book_app/feature/home/page/home_page.dart';
+import 'package:book_app/feature/home/provider/home_provider.dart';
+import 'package:book_app/feature/home/provider/liked_book_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
+import 'package:sqflite/sqflite.dart';
+
+void main() async {
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await init();
+    locator.isReady<Database>().then((value) {
+      runApp(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider<HomeProvider>(
+              create: (_) => locator<HomeProvider>()
+            ),
+            ChangeNotifierProvider<LikedBookProvider>(
+              create: (_) => locator<LikedBookProvider>()
+            )
+          ],
+          builder: (_, __) => ResponsiveSizer(
+            builder: (_, __, ___)  => const MyApp()
+          )
+        )
+      );
+    });
+  } on Exception catch (e) {
+    log("message : $e", name: "main()");
+  }
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Books App',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      onGenerateRoute: generateRoute,
+      home: HomePage()
+    );
+  }
+}
