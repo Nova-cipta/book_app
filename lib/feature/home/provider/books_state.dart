@@ -10,6 +10,8 @@ abstract class BooksState extends Equatable {
 
 class BooksInitial extends BooksState{}
 
+class BooksRefresh extends BooksState{}
+
 class BooksLoading extends BooksState {}
 
 class BooksEmpty extends BooksState {}

@@ -13,36 +13,25 @@ class LikedBookProvider with ChangeNotifier {
 
   List<Book> _listLiked = [];
   List<Book> get listLiked => _listLiked;
-  set addNewLiked(Book val) {
-    if (!_listLiked.any((e) => e.id == val.id)) {
-      _listLiked.add(val);
-      notifyListeners();
-    }
-  }
 
-  set removeLiked(int id) {
-    if (_listLiked.any((e) => e.id == id)) {
-      _listLiked.removeWhere((e) => e.id == id);
-      notifyListeners();
-    }
-  }
-
-  int _startIndex = 0;
+  int? _next = 0;
 
   Future<LikedBooksState> refresh({String query = ""}) async {
-    if (_likedState is! LikedBooksInitial || _likedState is! LikedBooksLoading) {
-      _likedState = LikedBooksInitial();
+    if (_likedState is! LikedBooksLoading && _likedState is! LikedBooksRefresh) {
+      _next = 0;
+      _likedState = LikedBooksRefresh();
       notifyListeners();
 
       final result = await getSavedBooks(query: query, like: true, startIndex: 0);
       final state = result.fold(
         (failure) => LikedBooksFailure(failure: failure),
         (data) {
-          _listLiked = data;
-          _startIndex = data.length;
+          _listLiked = data.books;
+          _next = data.next != null ? int.tryParse(data.next!) : null;
           return _listLiked.isNotEmpty ? LikedBooksEmpty() : LikedBooksLoaded();
         }
       );
+      await Future.delayed(const Duration(milliseconds: 1000));
       _likedState = state;
       notifyListeners();
       return state;
@@ -52,27 +41,28 @@ class LikedBookProvider with ChangeNotifier {
   }
 
   Future<LikedBooksState> fetchNextIndex({required String query}) async {
-    if (_likedState is! LikedBooksLoading /*&& _canNext*/) {
+    final next = _next;
+    if (_likedState is! LikedBooksLoading && _likedState is! LikedBooksRefresh && next != null) {
       _likedState = LikedBooksLoading();
       notifyListeners();
 
       final result = await getSavedBooks(
         query: query,
         like: true,
-        startIndex: _startIndex
+        startIndex: next
       );
       final state = result.fold(
         (failure) => LikedBooksFailure(failure: failure),
         (data) {
-          if (data.isNotEmpty) {
-            _listLiked.addAll(data);
+          if (data.books.isNotEmpty) {
+            _listLiked.addAll(data.books);
             _listLiked.toSet().toList();
-            _startIndex = data.length;
+            _next = data.next != null ? int.tryParse(data.next!) : null;
           }
           return LikedBooksLoaded();
         }
       );
-      await Future.delayed(const Duration(milliseconds: 2000));
+      await Future.delayed(const Duration(milliseconds: 1000));
       _likedState = LikedBooksLoaded();
       notifyListeners();
       return state;

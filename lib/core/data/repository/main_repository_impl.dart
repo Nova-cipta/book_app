@@ -39,7 +39,7 @@ class MainRepositoryImpl implements MainRepository {
   }
 
   @override
-  Future<Either<Failure, List<Book>>> getSavedBook({
+  Future<Either<Failure, BookPaging>> getSavedBook({
     String query = "", bool? like, int startIndex = 1
   }) async {
     try {
@@ -47,7 +47,7 @@ class MainRepositoryImpl implements MainRepository {
       return Right(result);
     } on DatabaseException catch (e) {
       log("DioException : ${e.result.toString()}", name: "MainRepositoryImpl.getSavedBook");
-      return Left(ServerFailure(message: e.result.toString()));
+      return Left(DatabaseFailure(message: e.result.toString()));
     } catch (e) {
       log("message : $e", name: "MainRepositoryImpl.getSavedBook");
       return Left(UnexpectedFailure(message: e.toString()));
@@ -61,7 +61,7 @@ class MainRepositoryImpl implements MainRepository {
       return Right(result);
     } on DatabaseException catch (e) {
       log("DioException : ${e.result.toString()}", name: "MainRepositoryImpl.saveBook");
-      return Left(ServerFailure(message: e.result.toString()));
+      return Left(DatabaseFailure(message: e.result.toString()));
     } catch (e) {
       log("message : $e", name: "MainRepositoryImpl.saveBook");
       return Left(UnexpectedFailure(message: e.toString()));
@@ -75,7 +75,7 @@ class MainRepositoryImpl implements MainRepository {
       return Right(result);
     } on DatabaseException catch (e) {
       log("DioException : ${e.result.toString()}", name: "MainRepositoryImpl.addLike");
-      return Left(ServerFailure(message: e.result.toString()));
+      return Left(DatabaseFailure(message: e.result.toString()));
     } catch (e) {
       log("message : $e", name: "MainRepositoryImpl.addLike");
       return Left(UnexpectedFailure(message: e.toString()));
@@ -89,7 +89,7 @@ class MainRepositoryImpl implements MainRepository {
       return Right(result);
     } on DatabaseException catch (e) {
       log("DioException : ${e.result.toString()}", name: "MainRepositoryImpl.removeLike");
-      return Left(ServerFailure(message: e.result.toString()));
+      return Left(DatabaseFailure(message: e.result.toString()));
     } catch (e) {
       log("message : $e", name: "MainRepositoryImpl.removeLike");
       return Left(UnexpectedFailure(message: e.toString()));

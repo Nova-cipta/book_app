@@ -21,7 +21,6 @@ class BookDetailProvider with ChangeNotifier {
   Completer<bool> _isSaved = Completer<bool>();
 
   Future<void> save({required Book data}) async {
-    log("called", name: "BookDetailProvider.save");
     final result = await saveBook(data: data);
     result.fold(
       (failure) {

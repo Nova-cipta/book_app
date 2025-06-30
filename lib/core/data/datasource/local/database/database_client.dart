@@ -2,6 +2,7 @@ import 'package:book_app/core/util/static.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DatabaseClient {
+  /// set up & initiate sqflite [Database]
   Future<Database> initDb() async {
     final path = await getDatabasesPath();
     final databasePath = '$path/$dbBookApp.db';

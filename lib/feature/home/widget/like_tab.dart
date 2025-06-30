@@ -17,10 +17,6 @@ class _LikeTabState extends State<LikeTab> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final result = await context.read<LikedBookProvider>().refresh();
-      if (result is LikedBooksFailure) {
-        Fluttertoast.showToast(msg: result.failure.message);
-      }
       scrollCtrl.addListener(() async {
         if (scrollCtrl.position.maxScrollExtent == scrollCtrl.position.pixels) {
           context.read<LikedBookProvider>().fetchNextIndex(query: query).then((val) {
@@ -30,6 +26,13 @@ class _LikeTabState extends State<LikeTab> {
           });
         }
       });
+      final provider = context.read<LikedBookProvider>();
+      if (provider.likedState is LikedBooksInitial) {
+        final result = await provider.refresh();
+        if (result is LikedBooksFailure) {
+          Fluttertoast.showToast(msg: result.failure.message);
+        }
+      }
     });
   }
 
@@ -61,31 +64,29 @@ class _LikeTabState extends State<LikeTab> {
           child: Consumer<LikedBookProvider>(
             builder: (_, provider, __) {
               final state = provider.likedState;
-              if (state is LikedBooksInitial) {
+              if (state is LikedBooksInitial || state is LikedBooksRefresh) {
                 return const Center(child: CircularProgressIndicator());
               } else if (provider.listLiked.isEmpty) {
-                if (state is LikedBooksFailure) {
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 10,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 15.w),
-                        child: Text(state.failure.message)
-                      ),
-                      FilledButton(
-                        onPressed: () => provider.refresh(query: query).then((val) {
-                          if (val is LikedBooksFailure) {
-                            Fluttertoast.showToast(msg: val.failure.message);
-                          }
-                        }),
-                        child: Text("Reload")
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 10,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15.w),
+                      child: Text(
+                        state is LikedBooksFailure ? state.failure.message : "No Book found"
                       )
-                    ]
-                  );
-                } else {
-                  return Center(child: Text("No Book found"));
-                }
+                    ),
+                    FilledButton(
+                      onPressed: () => provider.refresh(query: query).then((val) {
+                        if (val is LikedBooksFailure) {
+                          Fluttertoast.showToast(msg: val.failure.message);
+                        }
+                      }),
+                      child: Text("Refresh")
+                    )
+                  ]
+                );
               } else {
                 return RefreshIndicator(
                   onRefresh: () => provider.refresh(query: query).then((val) {

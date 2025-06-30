@@ -1,23 +1,14 @@
 import 'package:book_app/core/data/datasource/remote/network/app_interceptor.dart';
 import 'package:book_app/core/util/static.dart';
 import 'package:dio/dio.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
+/// set up [Dio] configuration used in this project
 class DioClient {
   static late Dio _dio;
   final AppInterceptor appInterceptor = AppInterceptor();
   addInterception() {
     _dio.interceptors.addAll([
       appInterceptor,
-      // PrettyDioLogger(
-      //   requestHeader: true,
-      //   requestBody: true,
-      //   responseBody: true,
-      //   responseHeader: false,
-      //   error: true,
-      //   compact: true,
-      //   maxWidth: 90
-      // )
     ]);
   }
 

@@ -3,7 +3,9 @@ import 'dart:developer';
 import 'package:book_app/core/data/model/book_paging_model.dart';
 import 'package:dio/dio.dart';
 
+/// contain all of the necessary API call used in this project
 abstract class RemoteDatasource {
+  /// get list of book from [baseUrl] API
   Future<BookPagingModel> getList({String query = ""});
 }
 

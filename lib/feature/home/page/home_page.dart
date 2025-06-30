@@ -26,12 +26,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void initState() {
     tabCtrl = TabController(length: 2, vsync: this);
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final result = await context.read<HomeProvider>().initiateData();
-      if (result is BooksFailure) {
-        Fluttertoast.showToast(msg: result.failure.message);
-      }
-    });
   }
 
   @override

@@ -15,21 +15,7 @@ void main() async {
     WidgetsFlutterBinding.ensureInitialized();
     await init();
     locator.isReady<Database>().then((value) {
-      runApp(
-        MultiProvider(
-          providers: [
-            ChangeNotifierProvider<HomeProvider>(
-              create: (_) => locator<HomeProvider>()
-            ),
-            ChangeNotifierProvider<LikedBookProvider>(
-              create: (_) => locator<LikedBookProvider>()
-            )
-          ],
-          builder: (_, __) => ResponsiveSizer(
-            builder: (_, __, ___)  => const MyApp()
-          )
-        )
-      );
+      runApp(MyApp());
     });
   } on Exception catch (e) {
     log("message : $e", name: "main()");
@@ -39,18 +25,29 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Books App',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      onGenerateRoute: generateRoute,
-      home: HomePage()
+    return ResponsiveSizer(
+      builder: (context, orientation, type) => MultiProvider(
+        providers: [
+          ChangeNotifierProvider<HomeProvider>(
+            create: (_) => locator<HomeProvider>()
+          ),
+          ChangeNotifierProvider<LikedBookProvider>(
+            create: (_) => locator<LikedBookProvider>()
+          )
+        ],
+        builder: (context, child) => MaterialApp(
+          title: 'Books App',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            useMaterial3: true,
+          ),
+          onGenerateRoute: generateRoute,
+          home: HomePage()
+        )
+      )
     );
   }
 }

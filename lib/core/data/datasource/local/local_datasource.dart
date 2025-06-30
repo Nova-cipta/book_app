@@ -3,14 +3,20 @@ import 'dart:developer';
 
 import 'package:book_app/core/data/model/author_model.dart';
 import 'package:book_app/core/data/model/book_model.dart';
+import 'package:book_app/core/data/model/book_paging_model.dart';
 import 'package:book_app/core/data/model/translator_model.dart';
 import 'package:book_app/core/util/static.dart';
 import 'package:sqflite/sqflite.dart';
 
+/// contain all of the database function used in this project
 abstract class LocalDatasource {
+  /// save book data to local database and return it as [BookModel]
   Future<BookModel> saveBook({required Map<String, Object?> data});
-  Future<List<BookModel>> getSavedBook({String query = "", bool? like, int startIndex = 0});
+  /// get a maximum ([pagingSize]) amount of [BookModel] from local database
+  Future<BookPagingModel> getSavedBook({String query = "", bool? like, int startIndex = 0});
+  /// set liked column on book with id of [id] to 1
   Future<bool> addLike({required int id});
+  /// update liked column on book with id of [id] to 0
   Future<bool> removeLike({required int id});
 }
 
@@ -19,7 +25,7 @@ class LocalDatasourceImpl implements LocalDatasource {
 
   LocalDatasourceImpl({required this.database});
 
-  Future<void> _insertBookWithTransaction({
+  Future<void> insertBookWithTransaction({
     required DatabaseExecutor exec,
     required Map<String, dynamic> bookData,
     required bool liked
@@ -114,7 +120,9 @@ class LocalDatasourceImpl implements LocalDatasource {
     }
   }
 
-  Future<BookModel> _getBookModel({required DatabaseExecutor exec, required int id}) async {
+  Future<BookModel> getBookModel({
+    required DatabaseExecutor exec, required int id
+  }) async {
     try {
       final book = await exec.query(
         tbBooks,
@@ -128,22 +136,19 @@ class LocalDatasourceImpl implements LocalDatasource {
       final subjects = await exec.query(
         tbSubjects, columns: ['subject'], where: 'book_id = ?', whereArgs: [id]
       ).then((val) => val.isNotEmpty
-        ? val.map<String>((e) => e['subject'].toString()).toList()
-        : <String>[]
+        ? val.map<String>((e) => e['subject'].toString()).toList() : <String>[]
       );
 
       final bookshelves = await exec.query(
         tbBookshelves, columns: ['shelf'], where: 'book_id = ?', whereArgs: [id]
       ).then((val) => val.isNotEmpty
-        ? val.map<String>((e) => e['shelf'].toString()).toList()
-        : <String>[]
+        ? val.map<String>((e) => e['shelf'].toString()).toList() : <String>[]
       );
 
       final languages = await exec.query(
         tbLanguages, columns: ['language'], where: 'book_id = ?', whereArgs: [id]
       ).then((val) => val.isNotEmpty
-        ? val.map<String>((e) => e['language'].toString()).toList()
-        : <String>[]
+        ? val.map<String>((e) => e['language'].toString()).toList() : <String>[]
       );
 
       final authors = await exec.rawQuery(
@@ -211,9 +216,9 @@ class LocalDatasourceImpl implements LocalDatasource {
         ).then((result) => result.isNotEmpty);
 
         if (isExist) {
-          return await _getBookModel(exec: txn, id: id);
+          return await getBookModel(exec: txn, id: id);
         } else {
-          await _insertBookWithTransaction(
+          await insertBookWithTransaction(
             exec: txn, bookData: data, liked: false
           );
           return BookModel.fromJson(data);
@@ -227,58 +232,56 @@ class LocalDatasourceImpl implements LocalDatasource {
   }
 
   @override
-  Future<List<BookModel>> getSavedBook({String query = "", bool? like, int startIndex = 0}) async {
+  Future<BookPagingModel> getSavedBook({
+    String query = "", bool? like, int startIndex = 0
+  }) async {
     try {
+      final offset = startIndex * pagingSize;
       final keyword = '%$query%';
       final whereQuery = like != null
         ? query.isNotEmpty
-          ? '''
-              WHERE b.liked = ?
-              AND (b.title LIKE ? OR a.name LIKE ?)
-            '''
+          ? 'WHERE b.liked = ? AND (b.title LIKE ? OR a.name LIKE ? OR t.name LIKE)'
           : 'WHERE b.liked = ?'
-        : query.isNotEmpty
-          ? 'WHERE (b.title LIKE ? OR a.name LIKE ?)'
-          : '';
+        : query.isNotEmpty ? 'WHERE (b.title LIKE ? OR a.name LIKE ? OR t.name LIKE)' : '';
       final whereArgs = [
         if (like != null) like ? 1 : 0,
         if (query.isNotEmpty) keyword,
         if (query.isNotEmpty) keyword,
+        if (query.isNotEmpty) keyword,
         pagingSize,
-        startIndex
+        offset
       ];
       final result = await database.transaction<List<BookModel>>((txn) async {
-        try {
-          final listID = await txn.rawQuery(
-            '''
-              SELECT DISTINCT b.id
-              FROM $tbBooks b
-              LEFT JOIN $tbBookAuthors ba ON b.id = ba.book_id
-              LEFT JOIN $tbAuthors a ON ba.author_id = a.id
-              LEFT JOIN $tbBookTranslators bt ON b.id = bt.book_id
-              LEFT JOIN $tbTranslators t ON bt.translator_id = t.id
-              $whereQuery
-              ORDER BY b.id ASC
-              LIMIT ? OFFSET ?
-            ''',
-            whereArgs
-          ).then((val) => val.map((e) => e['id'] as int).toList());
-          final listBook = <BookModel>[];
-          for (final id in listID) {
-            try {
-              final book = await _getBookModel(exec: txn, id: id);
-              listBook.add(book);
-            } catch (e) {
-              continue;
-            }
+        final listID = await txn.rawQuery(
+          '''
+            SELECT DISTINCT b.id
+            FROM $tbBooks b
+            LEFT JOIN $tbBookAuthors ba ON b.id = ba.book_id
+            LEFT JOIN $tbAuthors a ON ba.author_id = a.id
+            LEFT JOIN $tbBookTranslators bt ON b.id = bt.book_id
+            LEFT JOIN $tbTranslators t ON bt.translator_id = t.id
+            $whereQuery
+            LIMIT ? OFFSET ?
+          ''',
+          whereArgs
+        ).then((val) => val.map((e) => e['id'] as int).toList());
+        final listBook = <BookModel>[];
+        for (final id in listID) {
+          try {
+            final book = await getBookModel(exec: txn, id: id);
+            listBook.add(book);
+          } catch (e) {
+            continue;
           }
-          return listBook;
-        } on Exception catch (e) {
-          log("transaction : $e", name: "LocalDatasource.getSavedBook");
-          rethrow;
         }
+        return listBook;
       });
-      return result;
+      return BookPagingModel(
+        counts: 0,
+        next: result.length == pagingSize ? "${startIndex + 1}" : null,
+        previous: startIndex > 1 ? "${startIndex - 1}" : null,
+        books: result
+      );
     } catch (e) {
       log("message : $e", name: "LocalDatasource.getSavedBook");
       rethrow;

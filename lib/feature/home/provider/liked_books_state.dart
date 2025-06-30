@@ -10,6 +10,8 @@ abstract class LikedBooksState extends Equatable {
 
 class LikedBooksInitial extends LikedBooksState{}
 
+class LikedBooksRefresh extends LikedBooksState{}
+
 class LikedBooksLoading extends LikedBooksState {}
 
 class LikedBooksEmpty extends LikedBooksState {}

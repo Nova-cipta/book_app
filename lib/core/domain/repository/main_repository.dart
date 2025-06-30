@@ -5,7 +5,7 @@ import 'package:dartz/dartz.dart';
 
 abstract class MainRepository {
   Future<Either<Failure, BookPaging>> getList({String query = ""});
-  Future<Either<Failure, List<Book>>> getSavedBook({
+  Future<Either<Failure, BookPaging>> getSavedBook({
     String query = "", bool? like, int startIndex = 1
   });
   Future<Either<Failure, Book>> saveBook({required Book data});

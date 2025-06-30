@@ -33,22 +33,6 @@ class Book extends Equatable {
     required this.liked
   });
 
-  Book setLike(bool val) => Book(
-    id: id,
-    title: title,
-    subjects: subjects,
-    authors: authors,
-    summaries: summaries,
-    translators: translators,
-    bookshelves: bookshelves,
-    languages: languages,
-    copyright: copyright,
-    mediaType: mediaType,
-    formats: formats,
-    downloads: downloads,
-    liked: val
-  );
-
   Map<String, dynamic> get toMap => {
     "id": id,
     "title": title,

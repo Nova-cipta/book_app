@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:book_app/core/domain/entity/book_paging.dart';
 import 'package:book_app/core/domain/repository/main_repository.dart';
 import 'package:book_app/core/error/failure.dart';

@@ -21,10 +21,10 @@ class HomeProvider with ChangeNotifier {
 
   String _nextPage = "";
 
-  Future<BooksState> initiateData({String query = ""}) async {
-    if (_booksState is! BooksInitial || _booksState is! BooksLoading) {
+  Future<BooksState> refresh({String query = ""}) async {
+    if (_booksState is! BooksLoading && _booksState is! BooksRefresh) {
       _nextPage = "";
-      _booksState = BooksInitial();
+      _booksState = BooksRefresh();
       notifyListeners();
 
       final result = await getBooks(query: query);
@@ -45,7 +45,8 @@ class HomeProvider with ChangeNotifier {
   }
 
   Future<BooksState> fetchNextPage() async {
-    if (_booksState is! BooksLoading && _nextPage.isNotEmpty) {
+    if (_booksState is! BooksLoading && _booksState is! BooksRefresh && _nextPage.isNotEmpty
+    ) {
       _booksState = BooksLoading();
       notifyListeners();
 

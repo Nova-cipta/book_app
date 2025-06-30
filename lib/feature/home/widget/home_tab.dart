@@ -27,6 +27,13 @@ class _HomeTabState extends State<HomeTab> {
           });
         }
       });
+      final provider = context.read<HomeProvider>();
+      if (provider.bookState is BooksInitial) {
+        final result = await provider.refresh();
+        if (result is BooksFailure) {
+          Fluttertoast.showToast(msg: result.failure.message);
+        }
+      }
     });
   }
 
@@ -41,7 +48,7 @@ class _HomeTabState extends State<HomeTab> {
             onTapOutside: (event) => primaryFocus?.unfocus(),
             onSaved: (value) {
               primaryFocus?.unfocus();
-              context.read<HomeProvider>().initiateData(query: query).then((val) {
+              context.read<HomeProvider>().refresh(query: query).then((val) {
                 if (val is BooksFailure) {
                   Fluttertoast.showToast(msg: val.failure.message);
                 }
@@ -49,7 +56,7 @@ class _HomeTabState extends State<HomeTab> {
             },
             onEditingComplete: () {
               primaryFocus?.unfocus();
-              context.read<HomeProvider>().initiateData(query: query).then((val) {
+              context.read<HomeProvider>().refresh(query: query).then((val) {
                 if (val is BooksFailure) {
                   Fluttertoast.showToast(msg: val.failure.message);
                 }
@@ -66,34 +73,32 @@ class _HomeTabState extends State<HomeTab> {
           child: Consumer<HomeProvider>(
             builder: (_, provider, __) {
               final state = provider.bookState;
-              if (state is BooksInitial) {
+              if (state is BooksInitial || state is BooksRefresh) {
                 return const Center(child: CircularProgressIndicator());
               } else if (provider.listBook.isEmpty) {
-                if (state is BooksFailure) {
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 10,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 15.w),
-                        child: Text(state.failure.message)
-                      ),
-                      FilledButton(
-                        onPressed: () => provider.initiateData(query: query).then((val) {
-                          if (val is BooksFailure) {
-                            Fluttertoast.showToast(msg: val.failure.message);
-                          }
-                        }),
-                        child: Text("Reload")
+                return Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 10,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15.w),
+                      child: Text(
+                        state is BooksFailure ? state.failure.message : "No Book found"
                       )
-                    ]
-                  );
-                } else {
-                  return Center(child: Text("No Book found"));
-                }
+                    ),
+                    FilledButton(
+                      onPressed: () => provider.refresh(query: query).then((val) {
+                        if (val is BooksFailure) {
+                          Fluttertoast.showToast(msg: val.failure.message);
+                        }
+                      }),
+                      child: Text("Refresh")
+                    )
+                  ]
+                );
               } else {
                 return RefreshIndicator(
-                  onRefresh: () => provider.initiateData(query: query).then((val) {
+                  onRefresh: () => provider.refresh(query: query).then((val) {
                     if (val is BooksFailure) {
                       Fluttertoast.showToast(msg: val.failure.message);
                     }
