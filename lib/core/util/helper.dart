@@ -2,7 +2,7 @@ import 'dart:io';
 
 Future<bool> connectionInfo() async {
   try {
-    final result = await InternetAddress.lookup("youtube.com");
+    final result = await InternetAddress.lookup("google.com");
     if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
       return true;
     } else {

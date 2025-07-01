@@ -96,7 +96,7 @@ void main() {
         (_) async => dummyModel.map((e) => {'id' : e.id}).toList()
       );
 
-      final result = await datasource.getSavedBook(query: "", like: null, startIndex: 0);
+      final result = await datasource.getSavedBook(query: "", like: true, startIndex: 0);
 
       expect(result.books.length, dummyModel.length);
       expect(result.books[0].id, dummyModel[0].id);

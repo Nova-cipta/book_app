@@ -8,28 +8,28 @@ class LikeTab extends StatefulWidget {
 }
 
 class _LikeTabState extends State<LikeTab> {
-  final searchCtrl = TextEditingController(text: "");
+  late TextEditingController searchCtrl;
   final scrollCtrl = ScrollController();
-
-  String get query => searchCtrl.text;
 
   @override
   void initState() {
+    final provider = context.read<LikedBookProvider>();
+    searchCtrl = TextEditingController(text: provider.search);
+
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       scrollCtrl.addListener(() async {
         if (scrollCtrl.position.maxScrollExtent == scrollCtrl.position.pixels) {
-          context.read<LikedBookProvider>().fetchNextIndex(query: query).then((val) {
-            if (val is LikedBooksFailure) {
+          provider.fetchNextIndex().then((val) {
+            if (val is BooksFailure) {
               Fluttertoast.showToast(msg: val.failure.message);
             }
           });
         }
       });
-      final provider = context.read<LikedBookProvider>();
-      if (provider.likedState is LikedBooksInitial) {
+      if (provider.likedState is BooksInitial) {
         final result = await provider.refresh();
-        if (result is LikedBooksFailure) {
+        if (result is BooksFailure) {
           Fluttertoast.showToast(msg: result.failure.message);
         }
       }
@@ -38,90 +38,64 @@ class _LikeTabState extends State<LikeTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(10),
-          child: TextField(
-            controller: searchCtrl,
-            onTapOutside: (event) => primaryFocus?.unfocus(),
-            onEditingComplete: () {
-              primaryFocus?.unfocus();
-              context.read<LikedBookProvider>().refresh(query: query).then((val) {
-                if (val is LikedBooksFailure) {
-                  Fluttertoast.showToast(msg: val.failure.message);
-                }
-              });
-            },
-            decoration: const InputDecoration(
-              hintText: "Search",
-              border: OutlineInputBorder(),
-              isDense: true
-            )
-          )
-        ),
-        Expanded(
-          child: Consumer<LikedBookProvider>(
-            builder: (_, provider, __) {
-              final state = provider.likedState;
-              if (state is LikedBooksInitial || state is LikedBooksRefresh) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (provider.listLiked.isEmpty) {
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 10,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 15.w),
-                      child: Text(
-                        state is LikedBooksFailure ? state.failure.message : "No Book found"
-                      )
-                    ),
-                    FilledButton(
-                      onPressed: () => provider.refresh(query: query).then((val) {
-                        if (val is LikedBooksFailure) {
-                          Fluttertoast.showToast(msg: val.failure.message);
-                        }
-                      }),
-                      child: Text("Refresh")
-                    )
-                  ]
-                );
-              } else {
-                return RefreshIndicator(
-                  onRefresh: () => provider.refresh(query: query).then((val) {
-                    if (val is LikedBooksFailure) {
+    return Consumer<LikedBookProvider>(
+      builder: (_, provider, __) {
+        final state = provider.likedState;
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(15),
+              child: SearchTextField(
+                controller: searchCtrl,
+                onSearch: (search) {
+                  provider.startSearch(search: search).then((val) {
+                    if (val is BooksFailure) {
                       Fluttertoast.showToast(msg: val.failure.message);
                     }
-                  }),
-                  child: CustomScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    controller: scrollCtrl,
-                    slivers: [
-                      SliverList.separated(
-                        itemCount: provider.listLiked.length,
-                        itemBuilder: (_, index) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          height: 20.h,
-                          child: BookCard(data: provider.listLiked[index])
-                        ),
-                        separatorBuilder: (_, __) => const SizedBox(height: 10),
-                      ),
-                      if (state is LikedBooksLoading) SliverToBoxAdapter(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          alignment: Alignment.topCenter,
-                          child: const CircularProgressIndicator()
-                        )
+                  });
+                }
+              )
+            ),
+            Expanded(
+              child: state is BooksInitial || state is BooksRefresh ? const Center(
+                child: CircularProgressIndicator()
+              ) : provider.listLiked.isEmpty ? ReloadLayout(
+                message: state is BooksFailure ? state.failure.message : "No Book found",
+                onReload: () => provider.refresh().then((val) {
+                  if (val is BooksFailure) {
+                    Fluttertoast.showToast(msg: val.failure.message);
+                  }
+                })
+              ) : RefreshIndicator(
+                onRefresh: () => provider.refresh().then((val) {
+                  if (val is BooksFailure) {
+                    Fluttertoast.showToast(msg: val.failure.message);
+                  }
+                }),
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  controller: scrollCtrl,
+                  slivers: [
+                    SliverList.builder(
+                      itemCount: provider.listLiked.length,
+                      itemBuilder: (_, index) => BookCard(
+                        data: provider.listLiked[index]
                       )
-                    ]
-                  )
-                );
-              }
-            }
-          )
-        )
-      ]
+                    ),
+                    if (state is BooksLoading) SliverToBoxAdapter(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        alignment: Alignment.topCenter,
+                        child: const CircularProgressIndicator()
+                      )
+                    )
+                  ]
+                )
+              )
+            )
+          ]
+        );
+      }
     );
   }
 }

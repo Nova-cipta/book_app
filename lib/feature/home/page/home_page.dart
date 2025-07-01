@@ -1,18 +1,18 @@
 import 'package:book_app/feature/home/provider/books_state.dart';
 import 'package:book_app/feature/home/provider/home_provider.dart';
 import 'package:book_app/feature/home/provider/liked_book_provider.dart';
-import 'package:book_app/feature/home/provider/liked_books_state.dart';
 import 'package:book_app/feature/home/widget/book_card.dart';
+import 'package:book_app/core/presentation/widget/reload_layout.dart';
+import 'package:book_app/core/presentation/widget/search_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
-import 'package:responsive_sizer/responsive_sizer.dart';
 
 part '../widget/home_tab.dart';
 part '../widget/like_tab.dart';
 
 class HomePage extends StatefulWidget {
-  static const String routeName = "/home";
+  static const String routeName = "/";
   const HomePage({super.key});
 
   @override
@@ -59,7 +59,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             )
           ]
         )
-      ),
+      )
     );
   }
 }

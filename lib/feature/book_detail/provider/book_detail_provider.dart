@@ -18,6 +18,27 @@ class BookDetailProvider with ChangeNotifier {
     required this.removeLike
   });
 
+  bool _expSummary = true;
+  bool get expSummary => _expSummary;
+  updExpSummary() {
+    _expSummary = !_expSummary;
+    notifyListeners();
+  }
+
+  bool _expTags = false;
+  bool get expTags => _expTags;
+  updExpTags() {
+    _expTags = !_expTags;
+    notifyListeners();
+  }
+
+  bool _expInfo = false;
+  bool get expInfo => _expInfo;
+  updExpInfo() {
+    _expInfo = !_expInfo;
+    notifyListeners();
+  }
+
   Completer<bool> _isSaved = Completer<bool>();
 
   Future<void> save({required Book data}) async {

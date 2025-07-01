@@ -240,9 +240,9 @@ class LocalDatasourceImpl implements LocalDatasource {
       final keyword = '%$query%';
       final whereQuery = like != null
         ? query.isNotEmpty
-          ? 'WHERE b.liked = ? AND (b.title LIKE ? OR a.name LIKE ? OR t.name LIKE)'
+          ? 'WHERE b.liked = ? AND (b.title LIKE ? OR a.name LIKE ? OR t.name LIKE ?)'
           : 'WHERE b.liked = ?'
-        : query.isNotEmpty ? 'WHERE (b.title LIKE ? OR a.name LIKE ? OR t.name LIKE)' : '';
+        : query.isNotEmpty ? 'WHERE (b.title LIKE ? OR a.name LIKE ? OR t.name LIKE ?)' : '';
       final whereArgs = [
         if (like != null) like ? 1 : 0,
         if (query.isNotEmpty) keyword,

@@ -14,8 +14,6 @@ class BooksRefresh extends BooksState{}
 
 class BooksLoading extends BooksState {}
 
-class BooksEmpty extends BooksState {}
-
 class BooksLoaded extends BooksState {}
 
 class BooksFailure extends BooksState {

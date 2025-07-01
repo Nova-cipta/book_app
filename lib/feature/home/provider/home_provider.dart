@@ -21,19 +21,19 @@ class HomeProvider with ChangeNotifier {
 
   String _nextPage = "";
 
-  Future<BooksState> refresh({String query = ""}) async {
+  Future<BooksState> refresh() async {
     if (_booksState is! BooksLoading && _booksState is! BooksRefresh) {
       _nextPage = "";
       _booksState = BooksRefresh();
       notifyListeners();
 
-      final result = await getBooks(query: query);
+      final result = await getBooks(query: searchParam);
       final state = result.fold(
         (failure) => BooksFailure(failure: failure),
         (data) {
           _listBook = data.books;
           _nextPage = data.next ?? "";
-          return _listBook.isNotEmpty ? BooksEmpty() : BooksLoaded();
+          return BooksLoaded();
         }
       );
       _booksState = state;
@@ -42,6 +42,16 @@ class HomeProvider with ChangeNotifier {
     } else {
       return _booksState;
     }
+  }
+
+  String _search = "";
+  String get search => _search;
+  String get searchParam => _search.isNotEmpty
+    ? "search=${Uri.encodeComponent(_search)}" : "";
+
+  Future<BooksState> startSearch({required String search}) async {
+    _search = search;
+    return refresh();
   }
 
   Future<BooksState> fetchNextPage() async {
