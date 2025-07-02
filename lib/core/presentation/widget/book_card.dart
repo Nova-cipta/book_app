@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:book_app/core/domain/entity/book.dart';
+import 'package:book_app/core/util/text_style.dart';
 import 'package:book_app/feature/book_detail/page/book_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
@@ -57,18 +58,18 @@ class BookCard extends StatelessWidget {
                   children: [
                     Text(
                       "Title:",
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w300)
+                      style: labelThinSmall
                     ),
                     Text(
                       data.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)
+                      style: title
                     ),
                     const SizedBox.shrink(),
                     Text(
                       "Authors:",
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w300)
+                      style: labelThinSmall
                     ),
                     Text(
                       data.authors.isNotEmpty
@@ -77,8 +78,8 @@ class BookCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: data.authors.isNotEmpty
-                        ? TextStyle(fontSize: 14, fontWeight: FontWeight.w600)
-                        : TextStyle(fontSize: 14, fontWeight: FontWeight.w500, fontStyle: FontStyle.italic)
+                        ? subTitle
+                        : subTitle.copyWith(fontStyle: FontStyle.italic)
                     )
                   ]
                 )

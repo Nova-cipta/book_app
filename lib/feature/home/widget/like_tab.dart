@@ -8,13 +8,11 @@ class LikeTab extends StatefulWidget {
 }
 
 class _LikeTabState extends State<LikeTab> {
-  late TextEditingController searchCtrl;
   final scrollCtrl = ScrollController();
 
   @override
   void initState() {
     final provider = context.read<LikedBookProvider>();
-    searchCtrl = TextEditingController(text: provider.search);
 
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -46,7 +44,7 @@ class _LikeTabState extends State<LikeTab> {
             Padding(
               padding: const EdgeInsets.all(15),
               child: SearchTextField(
-                controller: searchCtrl,
+                value: provider.search,
                 onSearch: (search) {
                   provider.startSearch(search: search).then((val) {
                     if (val is BooksFailure) {

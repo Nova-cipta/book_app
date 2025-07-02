@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
                 borderRadius: BorderRadiusGeometry.circular(10.0)
               ),
               color: surfaceColor
-            )
+            ),
           ),
           onGenerateRoute: generateRoute,
           initialRoute: HomePage.routeName,
