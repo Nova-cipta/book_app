@@ -1,5 +1,3 @@
-# Palm Mobile Challenge
-
 ## Prerequisites
 - [Flutter SDK (Latest Stable)](https://docs.flutter.dev/get-started/install)
 - [Xcode](https://developer.apple.com/xcode/) (for iOS development on macOS)
